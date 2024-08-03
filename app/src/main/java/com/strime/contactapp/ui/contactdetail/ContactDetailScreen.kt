@@ -112,6 +112,7 @@ fun ContactContent(
     LoadingContent(
         loading = loading,
         empty = empty,
+        modifier = modifier,
         emptyContent = {
             Text(
                 text = stringResource(id = R.string.no_data),

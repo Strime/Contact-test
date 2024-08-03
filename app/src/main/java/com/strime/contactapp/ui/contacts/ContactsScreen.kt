@@ -79,13 +79,17 @@ fun ContactsScreen(
         LaunchedEffect(listState) {
             snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull() }
                 .collect { lastVisibleItem ->
-                    if (lastVisibleItem != null && lastVisibleItem.index == uiState.items.size - 1) {
-                        /* TODO */
+                    if (lastVisibleItem != null &&
+                        lastVisibleItem.index == uiState.items.size - 1 &&
+                        !uiState.isLoading
+                    ) {
+                        viewModel.loadMoreContact()
                     }
                 }
         }
         ContactsContent(
             loading = uiState.isLoading,
+            fetchingMoreContact = uiState.isFetchingMoreContact,
             contactModels = uiState.items,
             onContactClick = onContactClick,
             modifier = Modifier.padding(paddingValues),
@@ -106,6 +110,7 @@ fun ContactsScreen(
 @Composable
 fun ContactsContent(
     loading: Boolean,
+    fetchingMoreContact: Boolean,
     contactModels: List<ContactModel>,
     onContactClick: (ContactModel) -> Unit,
     modifier: Modifier = Modifier,
@@ -114,7 +119,8 @@ fun ContactsContent(
 
     LoadingContent(
         loading = loading,
-        empty = contactModels.isEmpty() && !loading,
+        empty = contactModels.isEmpty(),
+        modifier = modifier,
         emptyContent = { ContactsEmptyContent(modifier) },
     ) {
         Column(

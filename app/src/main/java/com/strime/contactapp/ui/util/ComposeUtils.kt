@@ -16,9 +16,19 @@
 
 package com.strime.contactapp.ui.util
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 val primaryDarkColor: Color = Color(0xFF263238)
 
@@ -28,20 +38,41 @@ val primaryDarkColor: Color = Color(0xFF263238)
  * @param loading (state) when true, display a loading spinner over [content]
  * @param empty (state) when true, display [emptyContent]
  * @param emptyContent (slot) the content to display for the empty state
- * @param modifier the modifier to apply to this layout.
  * @param content (slot) the main content to show
  */
 @Composable
 fun LoadingContent(
     loading: Boolean,
     empty: Boolean,
+    modifier: Modifier,
     emptyContent: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
+    loadingContent: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     if (empty) {
-        emptyContent()
+        when {
+            loading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    loadingContent ?: CircularProgressIndicator()
+                }
+            }
+
+            else -> emptyContent()
+        }
     } else {
-        content()
+        val progressIndicatorAlpha = when (loading) {
+            true -> 1F
+            else -> 0F
+        }
+        Column(
+            modifier = modifier.fillMaxSize(),
+        ) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(progressIndicatorAlpha)
+            )
+            content()
+        }
     }
 }

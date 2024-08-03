@@ -36,8 +36,9 @@ import javax.inject.Inject
  * UiState for the task list screen.
  */
 data class ContactsUiState(
-    val items: List<ContactModel> = emptyList(),
     val isLoading: Boolean = false,
+    val isFetchingMoreContact: Boolean = false,
+    val items: List<ContactModel> = emptyList(),
     val userMessage: Int? = null
 )
 
@@ -88,6 +89,12 @@ class ContactsViewModel @Inject constructor(
             initialValue = ContactsUiState(isLoading = true)
         )
 
+
+    suspend fun loadMoreContact() {
+        _isLoading.value = true
+        contactRepository.loadMoreData()
+        _isLoading.value = false
+    }
 
     fun snackbarMessageShown() {
         _userMessage.value = null
