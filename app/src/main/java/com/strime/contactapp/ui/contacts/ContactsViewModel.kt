@@ -65,22 +65,21 @@ class ContactsViewModel @Inject constructor(
 
     @VisibleForTesting
     val _userMessage: MutableStateFlow<Int?> = MutableStateFlow(null)
-    private val _isLoading = MutableStateFlow(false)
 
-    private val _fetchingState: MutableStateFlow<Async<List<ContactModel>>> = MutableStateFlow(Async.Uninitialized)
+    private val _fetchingState: MutableStateFlow<Async<List<ContactModel>>> = MutableStateFlow(Async.Loading)
 
     private val _contactsAsync = contactRepository.getContactsStream()
 
     val uiState: StateFlow<ContactsUiState> = combine(
-        _isLoading, _userMessage, _contactsAsync, _fetchingState
-    ) { isLoading, userMessage, contacts, fetchingState ->
+        _userMessage, _contactsAsync, _fetchingState
+    ) { userMessage, contacts, fetchingState ->
         when (fetchingState) {
-            is Async.Uninitialized -> {
+            is Async.Loading -> {
                 if (contacts.isEmpty()) {
                     loadMoreContact()
                 }
                 ContactsUiState(
-                    isLoading = isLoading,
+                    isLoading = true,
                     items = contacts,
                     networkFailed = false,
                     userMessage = userMessage
@@ -88,7 +87,7 @@ class ContactsViewModel @Inject constructor(
             }
             is Async.Error -> {
                 ContactsUiState(
-                    isLoading = isLoading,
+                    isLoading = false,
                     items = contacts,
                     networkFailed = true,
                     userMessage = userMessage
@@ -96,7 +95,7 @@ class ContactsViewModel @Inject constructor(
             }
             is Async.Success -> {
                 ContactsUiState(
-                    isLoading = isLoading,
+                    isLoading = false,
                     items = contacts,
                     networkFailed = false,
                     userMessage = userMessage,
@@ -112,7 +111,7 @@ class ContactsViewModel @Inject constructor(
 
 
     fun loadMoreContact() {
-        _isLoading.value = true
+        _fetchingState.value = Async.Loading
         viewModelScope.launch {
             try {
                 contactRepository.loadMoreData()
@@ -120,8 +119,6 @@ class ContactsViewModel @Inject constructor(
             } catch (e: Exception) {
                 _userMessage.value = R.string.loading_contact_error
                 _fetchingState.value = Async.Error
-            } finally {
-                _isLoading.value = false
             }
         }
     }

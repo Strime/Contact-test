@@ -21,7 +21,7 @@ package com.strime.contactapp.ui.util
  */
 sealed class Async<out T> {
 
-    data object Uninitialized : Async<Nothing>()
+    data object Loading : Async<Nothing>()
     data object Error : Async<Nothing>()
 
     data object Success : Async<Nothing>()

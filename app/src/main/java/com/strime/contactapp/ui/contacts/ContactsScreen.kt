@@ -194,10 +194,10 @@ private fun ContactItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.clip(CircleShape)
         )
-        Column1(Modifier.weight(1F)) {
+        Column(Modifier.weight(1F)) {
             Text(
                 text = contactModel.name,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.labelLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(
