@@ -35,6 +35,8 @@ The app follows a Model-View-ViewModel (MVVM) architecture:
 * **Hilt Flow:**  Integrates Kotlin Flows with Hilt to provide a streamlined way to inject Flow instances. Used for observing data changes from the repository.
 * **Navigation Compose:** For navigating between different screens in the app (contact list and contact details).
 * **JUnit:** For unit testing.
+* * **MockK:** A mocking library for Kotlin, used for creating mocks and stubs in unit tests.
+* **Turbine:** A small testing library for Kotlin Flows, used for testing flow emissions in a more structured way.
 
 ## Running the App
 
@@ -56,7 +58,6 @@ Run tests from Android Studio or using the command line.
 
 ## Future Improvements
 
-* Manage offline errors - WIP
 * Filter contact.
 * Improve UI design and user experience.
 * Add contact editing and deletion.

@@ -19,25 +19,21 @@ package com.strime.contactapp.ui.contactdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.strime.contactapp.R
 import com.strime.contactapp.data.ContactRepository
 import com.strime.contactapp.data.ui.ContactModel
 import com.strime.contactapp.ui.ContactDestinationsArgs
-import com.strime.contactapp.ui.util.Async
 import com.strime.contactapp.ui.util.WhileUiSubscribed
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 /**
  * UiState for the Details screen.
  */
-data class TaskDetailUiState(
+data class ContactDetailUiState(
     val contactModel: ContactModel? = null,
     val isLoading: Boolean = false,
     val userMessage: Int? = null,
@@ -57,49 +53,19 @@ class ContactDetailViewModel @Inject constructor(
     private val _userMessage: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _isLoading = MutableStateFlow(false)
     private val _contactModelAsync = contactRepository.getContactStream(contactId)
-        .map { handleContact(it) }
-        .catch { emit(Async.Error(R.string.loading_contact_error)) }
 
-    val uiState: StateFlow<TaskDetailUiState> = combine(
+    val uiState: StateFlow<ContactDetailUiState> = combine(
         _userMessage, _isLoading, _contactModelAsync
-    ) { userMessage, isLoading, taskAsync ->
-        when (taskAsync) {
-            Async.Loading -> {
-                TaskDetailUiState(isLoading = true)
-            }
-            is Async.Error -> {
-                TaskDetailUiState(
-                    userMessage = taskAsync.errorMessage
-                )
-            }
-            is Async.Success -> {
-                TaskDetailUiState(
-                    contactModel = taskAsync.data,
-                    isLoading = isLoading,
-                    userMessage = userMessage
-                )
-            }
-        }
+    ) { userMessage, isLoading, contactAsync ->
+        ContactDetailUiState(
+            contactModel = contactAsync,
+            isLoading = isLoading,
+            userMessage = userMessage
+        )
     }
         .stateIn(
             scope = viewModelScope,
             started = WhileUiSubscribed,
-            initialValue = TaskDetailUiState(isLoading = true)
+            initialValue = ContactDetailUiState(isLoading = true)
         )
-
-
-    fun snackbarMessageShown() {
-        _userMessage.value = null
-    }
-
-    private fun showSnackbarMessage(message: Int) {
-        _userMessage.value = message
-    }
-
-    private fun handleContact(contactModel: ContactModel?): Async<ContactModel?> {
-        if (contactModel == null) {
-            return Async.Error(R.string.contact_not_found)
-        }
-        return Async.Success(contactModel)
-    }
 }

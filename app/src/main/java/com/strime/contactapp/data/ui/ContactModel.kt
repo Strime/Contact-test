@@ -19,11 +19,21 @@ package com.strime.contactapp.data.ui
 import java.util.Locale
 
 /**
- * Immutable model class for a Task.
+ * Immutable model class for a Contact
  *
- * @param id id of the contact
- * TODO: fill me
- *
+ * @property id
+ * @property gender
+ * @property title
+ * @property firstName
+ * @property lastName
+ * @property email
+ * @property phone
+ * @property cell
+ * @property city
+ * @property country
+ * @property pictureUrl
+ * @property nat
+ * @property uuid
  */
 data class ContactModel(
     val id: Long,

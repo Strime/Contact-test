@@ -17,13 +17,19 @@
 package com.strime.contactapp.data
 
 import com.google.common.truth.Truth.assertThat
-import com.strime.contactapp.data.local.FakeContactDao
-import com.strime.contactapp.data.network.FakeNetworkDataSource
+import com.strime.contactapp.data.local.database.ContactDao
+import com.strime.contactapp.data.network.NetworkDataSource
+import com.strime.contactapp.data.network.NetworkDataSourceImpl
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import com.strime.sharedtestcode.data.ContactFactory
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Before
@@ -38,21 +44,9 @@ import org.junit.Before
 @ExperimentalCoroutinesApi
 class ContactRepositoryTest {
 
-    private val contactModel1 = ContactFactory.createContactModel(id = 1, firstName = "Jon")
-    private val contactModel2 = ContactFactory.createContactModel(id = 2, firstName = "Jack")
-    private val contactModel3 = ContactFactory.createContactModel(id = 3, firstName = "Sally")
-
-
-    private val newContactFirstName = "Peter"
-    private val newContactModel = ContactFactory.createContactModel(id = 4, firstName = newContactFirstName)
-    private val newContacts = listOf(newContactModel)
-
-    private val networkTasks = listOf(contactModel1, contactModel2).map { it.toDto() }
-    private val localTasks = listOf(contactModel3.toEntity())
-
     // Test dependencies
-    private lateinit var networkDataSource: FakeNetworkDataSource
-    private lateinit var localDataSource: FakeContactDao
+    private val networkDataSource: NetworkDataSource= mockk(relaxed = true)
+    private val localDataSource: ContactDao= mockk(relaxed = true)
 
     private var testDispatcher = UnconfinedTestDispatcher()
     private var testScope = TestScope(testDispatcher)
@@ -63,8 +57,6 @@ class ContactRepositoryTest {
     @ExperimentalCoroutinesApi
     @Before
     fun createRepository() {
-        networkDataSource = FakeNetworkDataSource(contacts = mutableMapOf(1 to networkTasks))
-        localDataSource = FakeContactDao(localTasks)
         // Get a reference to the class under test
         repository = ContactRepositoryImpl(
             networkDataSource = networkDataSource,
@@ -73,18 +65,50 @@ class ContactRepositoryTest {
             scope = testScope
         )
     }
-
-    @ExperimentalCoroutinesApi
     @Test
-    fun getAccounts_emptyRepositoryAndUninitializedCache() = testScope.runTest {
-        networkDataSource.contacts?.clear()
+    fun `getContactsStream returns data from localDataSource`() = runTest {
+        val contacts = listOf(
+            ContactFactory.createContactEntity(firstName = "John")
+        )
+        every { localDataSource.observeAll() } returns flowOf(contacts)
 
-        assertThat(repository.getContactsStream().first().size).isEqualTo(0)
+        val result = repository.getContactsStream().first()
+
+        assertThat(result).isEqualTo(contacts.toModel())
     }
 
     @Test
-    fun getAccounts_withData() = testScope.runTest {
+    fun `getContactStream returns data from localDataSource`() = runTest {
+        val contact = ContactFactory.createContactEntity(firstName = "John")
+        every {  localDataSource.observeById(1) } returns flowOf(contact)
 
-        assertThat(repository.getContactsStream().first().size).isEqualTo(3)
+        val result = repository.getContactStream("1").first()
+
+        assertThat(result).isEqualTo(contact.toModel())
+    }
+
+    @Test
+    fun `loadMoreData fetches data from network and inserts into localDataSource`() = runTest {
+        val remoteContacts = listOf(
+        ContactFactory.createContactDto("Jon")
+    )
+        coEvery { localDataSource.count() } returns 0
+        coEvery { networkDataSource.loadContactList(1) } returns (remoteContacts)
+
+        repository.loadMoreData()
+
+        coVerify { networkDataSource.loadContactList(1) }
+        coVerify { localDataSource.upsertAll(remoteContacts.toEntity()) }
+    }
+
+    @Test
+    fun `loadMoreData calculates correct page number`() = runTest {
+        val count = NetworkDataSourceImpl.RESULT_COUNT * 2
+        coEvery { localDataSource.count() } returns count
+        coEvery { networkDataSource.loadContactList(any()) } returns emptyList()
+
+        repository.loadMoreData()
+
+        coVerify { networkDataSource.loadContactList(3) }
     }
 }

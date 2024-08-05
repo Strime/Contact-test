@@ -23,8 +23,11 @@ retrofit = "2.11.0"
 kotlinGradlePlugin = "2.0.0"
 espressoCore = "3.5.1"
 appcompat = "1.6.1"
+coretesting = "2.1.0"
 material = "1.10.0"
 truth = "1.1.2"
+mockk = "1.13.12"
+turbine = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -63,7 +66,11 @@ squareup-retrofit2-gson = { group = "com.squareup.retrofit2", name = "converter-
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "coretesting" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
+mockk-agent = { group = "io.mockk", name = "mockk-agent", version.ref = "mockk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

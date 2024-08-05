@@ -68,7 +68,7 @@ object DatabaseModule {
     }
 
     @Provides
-    fun provideTaskDao(database: AppDatabase): ContactDao = database.contactDao()
+    fun provideContactDao(database: AppDatabase): ContactDao = database.contactDao()
 
     @Provides
     fun provideContactService(): NetworkContactService {

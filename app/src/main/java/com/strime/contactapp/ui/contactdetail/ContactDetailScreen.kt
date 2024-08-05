@@ -35,6 +35,7 @@ import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.strime.contactapp.R
 import com.strime.contactapp.data.ui.ContactModel
@@ -111,6 +113,7 @@ fun ContactContent(
 
     LoadingContent(
         loading = loading,
+        error = false,
         empty = empty,
         modifier = modifier,
         emptyContent = {
@@ -129,13 +132,13 @@ fun ContactContent(
                 if (contactModel != null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box {
-                            AsyncImage(
+                            SubcomposeAsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(contactModel.pictureUrl)
                                     .crossfade(true)
                                     .build(),
-                                //placeholder = painterResource(R.drawable.drawer_item_color),
-                                contentDescription = "stringResource(R.string.description)",
+                                loading = { CircularProgressIndicator() },
+                                contentDescription = stringResource(R.string.contact_image_content_description),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .clip(CircleShape)

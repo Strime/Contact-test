@@ -25,18 +25,24 @@
     <string name="loading">LOADING</string>
 
     <string name="label_all">All Contacts</string>
-    <string name="no_contacts_all">You have no contacts!</string>
+    <string name="no_contacts_all">You have no contacts</string>
+    <string name="network_failed">Fetching contact failed</string>
     <string name="contact_phone">Landline</string>
     <string name="contact_cell">Mobile</string>
     <string name="contact_mail">Email</string>
     <string name="contact_address">Address</string>
-    <string name="refresh">Refresh</string>
     <string name="no_data_description" />
 
+    <!-- Buttons -->
+    <string name="retry">Retry</string>
+
     <!-- Content Descriptions -->
+    <string name="contact_image_content_description">Contact image</string>
     <string name="contacts_header_image_content_description">Contacts header image</string>
     <string name="no_contacts_image_content_description">No contacts image</string>
     <string name="phone_image_content_description">Phone image</string>
     <string name="mail_image_content_description">Mail image</string>
     <string name="address_image_content_description">Address image</string>
+    <string name="empty_image_content_description">Empty image</string>
+    <string name="error_image_content_description">Error image</string>
 </resources>

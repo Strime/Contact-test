@@ -105,7 +105,11 @@ dependencies {
     kaptAndroidTest(libs.hilt.android.compiler)
     // Hilt and Robolectric tests.
     testImplementation(libs.hilt.android.testing)
+    implementation(libs.androidx.arch.core.testing)
     testImplementation(libs.google.truth)
+    testImplementation(libs.turbine)
+    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk.agent)
     kaptTest(libs.hilt.android.compiler)
 
     // Arch Components

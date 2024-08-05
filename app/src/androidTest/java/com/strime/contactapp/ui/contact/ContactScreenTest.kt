@@ -71,4 +71,3 @@ class ContactScreenTest {
     }
 }
 
-private val FAKE_DATA = listOf("Compose", "Room", "Kotlin")

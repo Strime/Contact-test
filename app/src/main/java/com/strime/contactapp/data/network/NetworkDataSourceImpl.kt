@@ -23,7 +23,7 @@ class NetworkDataSourceImpl @Inject constructor(
 ) : NetworkDataSource {
     companion object {
         const val SEED = "lydia"
-        const val RESULT_COUNT = 10
+        const val RESULT_COUNT = 20
     }
 
 

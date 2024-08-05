@@ -16,19 +16,32 @@
 
 package com.strime.contactapp.ui.util
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.strime.contactapp.R
+import okhttp3.internal.notify
 
 val primaryDarkColor: Color = Color(0xFF263238)
 
@@ -43,19 +56,23 @@ val primaryDarkColor: Color = Color(0xFF263238)
 @Composable
 fun LoadingContent(
     loading: Boolean,
+    error: Boolean,
     empty: Boolean,
     modifier: Modifier,
     emptyContent: @Composable () -> Unit,
-    loadingContent: (@Composable () -> Unit)? = null,
+    loadingContent: @Composable () -> Unit = { CircularProgressIndicator() },
+    errorContent: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     if (empty) {
         when {
             loading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    loadingContent ?: CircularProgressIndicator()
+                    loadingContent.invoke()
                 }
             }
+
+            error -> errorContent?.invoke() ?: Text("Oups")
 
             else -> emptyContent()
         }
@@ -64,9 +81,7 @@ fun LoadingContent(
             true -> 1F
             else -> 0F
         }
-        Column(
-            modifier = modifier.fillMaxSize(),
-        ) {
+        Column(modifier = modifier.fillMaxSize(),) {
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -76,3 +91,4 @@ fun LoadingContent(
         }
     }
 }
+

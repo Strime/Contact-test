@@ -46,10 +46,10 @@ import javax.inject.Inject
 @HiltAndroidTest
 class ContactsScreenTest {
 
-    @get:Rule(order = 0)
+    @get:Rule
     var hiltRule = HiltAndroidRule(this)
 
-    @get:Rule(order = 1)
+    @get:Rule
     val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
 
     @Inject
@@ -65,21 +65,21 @@ class ContactsScreenTest {
 
     @Test
     fun displayAccount_whenRepositoryHasNoData() = runTest {
-        // GIVEN - No contact
+        // Given
         withContext(Dispatchers.IO) {
             contactDao.deleteAll()
         }
 
-        // WHEN - On startup
+        // When
         setContent()
 
-        // THEN - Verify task is displayed on screen
+        // Then
         composeTestRule.onNodeWithText("Jon").assertDoesNotExist()
     }
 
     @Test
     fun displayAccount_whenRepositoryHasOneData() = runTest {
-        // GIVEN - One contact already in the repository
+        // Given
         val contact = ContactFactory.createContactEntity("Jon")
 
         withContext(Dispatchers.IO) {
@@ -87,17 +87,17 @@ class ContactsScreenTest {
             contactDao.upsertAll(listOf(contact))
         }
 
-        // WHEN - On startup
+        // When
         setContent()
 
-        // THEN - Verify task is displayed on screen
+        // Then
         composeTestRule.onNodeWithText("Jon Doe").assertIsDisplayed()
         composeTestRule.onNodeWithText("0123456789").assertIsDisplayed()
     }
 
     @Test
     fun displayAccount_whenRepositoryHasMultipleData() = runTest {
-        // GIVEN - Multiple contact task already in the repository
+        // Given
         val contact1 = ContactFactory.createContactEntity("Jon", phone = "0123456789")
         val contact2 = ContactFactory.createContactEntity("Jack", phone = "1234567890")
         val contact3 = ContactFactory.createContactEntity("Joe", phone = "2345678901")
@@ -106,10 +106,10 @@ class ContactsScreenTest {
             contactDao.upsertAll(listOf(contact1, contact2, contact3))
         }
 
-        // WHEN - On startup
+        // When
         setContent()
 
-        // THEN - Verify task is displayed on screen
+        // Then
         composeTestRule.onNodeWithText("Jon Doe").assertIsDisplayed()
         composeTestRule.onNodeWithText("0123456789").assertIsDisplayed()
         composeTestRule.onNodeWithText("Jack Doe").assertIsDisplayed()

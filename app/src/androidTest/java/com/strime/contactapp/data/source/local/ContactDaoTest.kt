@@ -49,14 +49,14 @@ class ContactDaoTest {
 
     @Test
     fun insertContactAndGetById() = runTest {
-        // GIVEN - insert a contact
+        // Given
         val contact = ContactFactory.createContactEntity("Jon")
         database.contactDao().upsertAll(contacts = listOf(contact))
 
-        // WHEN - Get the task by id from the database
+        // When
         val loaded = database.contactDao().observeById(1).first()
 
-        // THEN - The loaded data contains the expected values
+        // Then
         assertNotNull(loaded)
         assertEquals(contact.title, loaded.title)
         assertEquals(contact.firstName, loaded.firstName)
@@ -64,16 +64,16 @@ class ContactDaoTest {
 
     @Test
     fun insertContactsAndGetAll() = runTest {
-        // GIVEN - insert a task
+        // Given
         val contact1 = ContactFactory.createContactEntity("Jon")
         val contact2 = ContactFactory.createContactEntity("Jack")
         val contact3 = ContactFactory.createContactEntity("Jane")
         database.contactDao().upsertAll(contacts = listOf(contact1, contact3, contact2))
 
-        // WHEN - Get the task by id from the database
+        // When
         val loaded = database.contactDao().observeAll().first()
 
-        // THEN - The loaded data contains the values sorted by ID
+        // Then
         assertNotNull(loaded)
         assertEquals(loaded.size, 3)
         assertEquals(loaded[0].firstName, contact1.firstName)

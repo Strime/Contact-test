@@ -16,6 +16,7 @@
 
 package com.strime.contactapp.ui.contacts
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,12 +31,24 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContactPhone
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,12 +64,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.strime.contactapp.R
 import com.strime.contactapp.data.ui.ContactModel
 import com.strime.contactapp.ui.theme.MyApplicationTheme
 import com.strime.contactapp.ui.util.AccountsTopAppBar
 import com.strime.contactapp.ui.util.LoadingContent
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import java.util.UUID
 import androidx.compose.foundation.layout.Column as Column1
 
@@ -66,43 +82,52 @@ fun ContactsScreen(
     modifier: Modifier = Modifier,
     viewModel: ContactsViewModel = hiltViewModel(),
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
         topBar = {
             AccountsTopAppBar()
         },
         modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        var didReachBottom by remember { mutableStateOf(false) } // Used to avoid infinite call when bottom reach with no network
 
         val listState = rememberLazyListState()
 
         LaunchedEffect(listState) {
             snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull() }
-                .collect { lastVisibleItem ->
-                    if (lastVisibleItem != null &&
-                        lastVisibleItem.index == uiState.items.size - 1 &&
-                        !uiState.isLoading
+                .map { it?.index }
+                .distinctUntilChanged()
+                .collect { lastVisibleItemIndex ->
+                    if (lastVisibleItemIndex == uiState.items.size - 1 &&
+                        !uiState.isLoading &&
+                        !didReachBottom
                     ) {
+                        didReachBottom = true
                         viewModel.loadMoreContact()
+                    } else {
+                        didReachBottom = false
                     }
                 }
         }
         ContactsContent(
             loading = uiState.isLoading,
-            fetchingMoreContact = uiState.isFetchingMoreContact,
+            networkFailed = uiState.networkFailed,
             contactModels = uiState.items,
             onContactClick = onContactClick,
             modifier = Modifier.padding(paddingValues),
+            onRefreshClick = { viewModel.loadMoreContact() },
             listState = listState
         )
 
         // Check for user messages to display on the screen
         uiState.userMessage?.let { message ->
-            /*val snackbarText = stringResource(message)
-            LaunchedEffect(scaffoldState, viewModel, message, snackbarText) {
-                scaffoldState.snackbarHostState.showSnackbar(snackbarText)
+            val snackbarText = stringResource(message)
+            LaunchedEffect(snackbarHostState, viewModel, message, snackbarText) {
+                snackbarHostState.showSnackbar(snackbarText)
                 viewModel.snackbarMessageShown()
-            }*/
+            }
         }
     }
 }
@@ -110,8 +135,9 @@ fun ContactsScreen(
 @Composable
 fun ContactsContent(
     loading: Boolean,
-    fetchingMoreContact: Boolean,
+    networkFailed: Boolean,
     contactModels: List<ContactModel>,
+    onRefreshClick: () -> Unit,
     onContactClick: (ContactModel) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState
@@ -119,9 +145,11 @@ fun ContactsContent(
 
     LoadingContent(
         loading = loading,
+        error = networkFailed,
         empty = contactModels.isEmpty(),
         modifier = modifier,
         emptyContent = { ContactsEmptyContent(modifier) },
+        errorContent = { ContactsFailedContent(modifier, onRefreshClick) },
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -156,13 +184,13 @@ private fun ContactItem(
                 horizontal = dimensionResource(id = R.dimen.horizontal_margin),
             )
     ) {
-        AsyncImage(
+        SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(contactModel.pictureUrl)
                 .crossfade(true)
                 .build(),
-            //placeholder = painterResource(R.drawable.drawer_item_color),
-            contentDescription = "stringResource(R.string.description)", //TODO: change it
+            loading = { CircularProgressIndicator() },
+            contentDescription = stringResource(R.string.contact_image_content_description),
             contentScale = ContentScale.Crop,
             modifier = Modifier.clip(CircleShape)
         )
@@ -200,12 +228,37 @@ private fun ContactsEmptyContent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo_no_fill),
-            contentDescription = stringResource(R.string.no_contacts_image_content_description),
-            modifier = Modifier.size(96.dp)
+        Icon(
+            Icons.Default.ContactPhone,
+            modifier = Modifier.size(64.dp),
+            contentDescription = stringResource(id = R.string.error_image_content_description)
         )
         Text(stringResource(id = R.string.no_contacts_all))
+    }
+}
+
+@Composable
+private fun ContactsFailedContent(
+    modifier: Modifier = Modifier,
+    onRefreshClick: () -> Unit
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            Icons.Default.WifiOff,
+            modifier = Modifier.size(64.dp),
+            contentDescription = stringResource(id = R.string.error_image_content_description)
+        )
+        Text(
+            stringResource(id = R.string.network_failed),
+            modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.vertical_margin))
+        )
+        Button(onClick = onRefreshClick) {
+            Text(stringResource(id = R.string.retry))
+        }
     }
 }
 
