@@ -54,11 +54,14 @@ Run tests from Android Studio or using the command line.
 
 ## Screenshots
 
-(Add screenshots of your app here)
+Located in the `screenshots` directory.
+
+[<img src="screenshots/a.png" width="200"/>](screenshots/contacts.png)
+[<img src="screenshots/b.png" width="200"/>](screenshots/contact_details.png)
 
 ## Future Improvements
 
-* Filter contact.
+* Filter contact list.
 * Improve UI design and user experience.
 * Add contact editing and deletion.
 * Add more comprehensive tests.
