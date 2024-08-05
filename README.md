@@ -57,7 +57,9 @@ Run tests from Android Studio or using the command line.
 Located in the `screenshots` directory.
 
 [<img src="screenshots/a.png" width="200"/>](screenshots/contacts.png)
+[<img src="screenshots/b.png" width="200"/>](screenshots/contacts_dark.png)
 [<img src="screenshots/b.png" width="200"/>](screenshots/contact_details.png)
+[<img src="screenshots/b.png" width="200"/>](screenshots/contact_details_dark.png)
 
 ## Future Improvements
 
