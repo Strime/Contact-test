@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
@@ -84,15 +83,6 @@ fun ContactDetailScreen(
             contactModel = uiState.contactModel,
             modifier = Modifier.padding(paddingValues)
         )
-
-        // Check for user messages to display on the screen
-        uiState.userMessage?.let { userMessage ->
-            val snackbarText = stringResource(userMessage)
-            /*LaunchedEffect(scaffoldState, viewModel, userMessage, snackbarText) {
-                scaffoldState.snackbarHostState.showSnackbar(snackbarText)
-                viewModel.snackbarMessageShown()
-            }*/
-        }
     }
 }
 
@@ -247,9 +237,9 @@ fun ListTile(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            BasicText(text = title, style = MaterialTheme.typography.bodyMedium)
+            Text(text = title, style = MaterialTheme.typography.bodyMedium)
             if (subtitle != null) {
-                BasicText(text = subtitle, style = MaterialTheme.typography.labelMedium)
+                Text(text = subtitle, style = MaterialTheme.typography.labelSmall)
             }
         }
 
