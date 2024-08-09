@@ -21,12 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.strime.contactapp.data.ui.ContactModel
 import com.strime.contactapp.ui.contactdetail.ContactContent
 import com.strime.contactapp.ui.contactdetail.ContactDetailScreen
-import com.strime.contactapp.ui.contacts.ContactsViewModel
 import com.strime.sharedtestcode.data.ContactFactory
 import org.junit.Before
 import org.junit.Rule
@@ -52,10 +49,11 @@ class ContactScreenTest {
         // Given
         composeTestRule.setContent {
             ContactContent(
-                contactModel = ContactFactory.createContactModel(1, "Jon", phone = "1234567890"),
-                empty = false,
                 loading = false,
+                empty = false,
+                contactModel = ContactFactory.createContactModel(1, "Jon", phone = "1234567890"),
                 modifier = Modifier,
+                onSendSmsClick = viewModel::onSendSmsClick,
             )
         }
         // When

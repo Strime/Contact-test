@@ -30,6 +30,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+
+sealed class ContactDetailAction {
+    data class SendSms(val phoneNumber: String) : ContactDetailAction()
+    data class DoCall(val phoneNumber: String) : ContactDetailAction()
+    data class SendEmail(val emailAddress: String) : ContactDetailAction()
+    data class OpenMaps(val address: String) : ContactDetailAction()
+}
 /**
  * UiState for the Details screen.
  */
@@ -37,6 +44,7 @@ data class ContactDetailUiState(
     val contactModel: ContactModel? = null,
     val isLoading: Boolean = false,
     val userMessage: Int? = null,
+    val action: ContactDetailAction? = null,
 )
 
 /**
@@ -50,17 +58,19 @@ class ContactDetailViewModel @Inject constructor(
 
     private val contactId: String = savedStateHandle[ContactDestinationsArgs.CONTACT_ID_ARG]!!
 
+    private val _actions: MutableStateFlow<ContactDetailAction?> = MutableStateFlow(null)
     private val _userMessage: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _isLoading = MutableStateFlow(false)
     private val _contactModelAsync = contactRepository.getContactStream(contactId)
 
     val uiState: StateFlow<ContactDetailUiState> = combine(
-        _userMessage, _isLoading, _contactModelAsync
-    ) { userMessage, isLoading, contactAsync ->
+        _userMessage, _isLoading, _contactModelAsync, _actions
+    ) { userMessage, isLoading, contactAsync, action ->
         ContactDetailUiState(
             contactModel = contactAsync,
             isLoading = isLoading,
-            userMessage = userMessage
+            userMessage = userMessage,
+            action = action
         )
     }
         .stateIn(
@@ -68,4 +78,21 @@ class ContactDetailViewModel @Inject constructor(
             started = WhileUiSubscribed,
             initialValue = ContactDetailUiState(isLoading = true)
         )
+
+    fun onSendSmsClick(phoneNumber: String) {
+        _actions.value = ContactDetailAction.SendSms(phoneNumber)
+    }
+    fun onCallNumberClick(phoneNumber: String) {
+        _actions.value = ContactDetailAction.DoCall(phoneNumber)
+    }
+    fun onSendEmailClick(email: String) {
+        _actions.value = ContactDetailAction.SendEmail(email)
+    }
+    fun onShowMapClick(address: String) {
+        _actions.value = ContactDetailAction.OpenMaps(address)
+    }
+
+    fun onActionHandled() {
+        _actions.value = null
+    }
 }

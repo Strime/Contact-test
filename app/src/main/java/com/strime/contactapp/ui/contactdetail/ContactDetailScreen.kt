@@ -16,6 +16,8 @@
 
 package com.strime.contactapp.ui.contactdetail
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,13 +58,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.strime.contactapp.R
 import com.strime.contactapp.data.ui.ContactModel
 import com.strime.contactapp.ui.util.AccountDetailTopAppBar
 import com.strime.contactapp.ui.util.LoadingContent
+import kotlin.reflect.KFunction1
 
 @Composable
 fun ContactDetailScreen(
@@ -69,18 +72,42 @@ fun ContactDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: ContactDetailViewModel = hiltViewModel(),
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // Handle the event when it's triggered
+    LaunchedEffect(uiState.action) {
+       val action =  when(val action = uiState.action) {
+            is ContactDetailAction.SendSms -> "sms:${action.phoneNumber}"
+            is ContactDetailAction.DoCall -> "tel:${action.phoneNumber}"
+            is ContactDetailAction.SendEmail -> "mailto:${action.emailAddress}"
+            is ContactDetailAction.OpenMaps -> "google.navigation:q=${action.address}"
+            null -> null
+        }
+        action?.let {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse(action)
+            }
+            context.startActivity(intent)
+            viewModel.onActionHandled() // Reset the event after handling
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             AccountDetailTopAppBar(onBack = onBack)
         }
     ) { paddingValues ->
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         ContactContent(
             loading = uiState.isLoading,
             empty = uiState.contactModel == null && !uiState.isLoading,
             contactModel = uiState.contactModel,
+            onSendSmsClick = viewModel::onSendSmsClick,
+            onCallNumberClick = viewModel::onCallNumberClick,
+            onSendEmailClick = viewModel::onSendEmailClick,
+            onShowMapClick = viewModel::onShowMapClick,
             modifier = Modifier.padding(paddingValues)
         )
     }
@@ -91,7 +118,11 @@ fun ContactContent(
     loading: Boolean,
     empty: Boolean,
     contactModel: ContactModel?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSendSmsClick: (String) -> Unit,
+    onCallNumberClick: (String) -> Unit,
+    onSendEmailClick: (String) -> Unit,
+    onShowMapClick: (String) -> Unit,
 ) {
     val screenPadding = Modifier.padding(
         horizontal = dimensionResource(id = R.dimen.horizontal_margin),
@@ -159,14 +190,14 @@ fun ContactContent(
                                 )
                             },
                             trailing = {
-                                IconButton(onClick = { /*TODO*/ }) {
+                                IconButton(onClick = { onSendSmsClick(contactModel.cell) }) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Message,
                                         contentDescription = stringResource(id = R.string.phone_image_content_description),
                                     )
                                 }
                             },
-                            onClick = { /*TODO*/ }
+                            onClick = { onCallNumberClick(contactModel.cell) }
                         )
                         ListTile(
                             title = contactModel.phone,
@@ -178,7 +209,7 @@ fun ContactContent(
                                     modifier = Modifier.alpha(0f)
                                 )
                             },
-                            onClick = { /*TODO*/ }
+                            onClick = { onCallNumberClick(contactModel.phone) }
                         )
                         HorizontalDivider()
                         ListTile(
@@ -190,7 +221,7 @@ fun ContactContent(
                                     contentDescription = stringResource(id = R.string.mail_image_content_description)
                                 )
                             },
-                            onClick = { /*TODO*/ }
+                            onClick = { onSendEmailClick(contactModel.email) }
                         )
                         HorizontalDivider()
                         ListTile(
@@ -202,7 +233,7 @@ fun ContactContent(
                                     contentDescription = stringResource(id = R.string.address_image_content_description)
                                 )
                             },
-                            onClick = { /*TODO*/ }
+                            onClick = {  onShowMapClick(contactModel.address) }
                         )
                     }
                 }
