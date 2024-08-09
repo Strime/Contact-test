@@ -53,7 +53,11 @@ fun MainNavigation(
         }
         composable(ContactDestinations.CONTACT_DETAIL_ROUTE) {
             ContactDetailScreen(
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    if (!navController.popBackStack()) {
+                        navActions.navigateToContacts()
+                    }
+                },
             )
         }
     }
@@ -86,6 +90,10 @@ object ContactDestinations {
  * Models the navigation actions in the app.
  */
 class ContactNavigationActions(private val navController: NavHostController) {
+    fun navigateToContacts() {
+        navController.navigate(CONTACTS_SCREEN)
+    }
+
     fun navigateToContactDetail(contactId: Long) {
         navController.navigate("$CONTACT_DETAIL_SCREEN/$contactId")
     }

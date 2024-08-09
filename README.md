@@ -19,7 +19,9 @@ This is a simple contact app that demonstrates modern Android development practi
 
 The app follows a Model-View-ViewModel (MVVM) architecture:
 
-* **Model:** Represents the contact data and data access objects (DAOs).
+* **Entity:** Represents the contact data and data access objects (DAOs).
+* **Dto:** Represents the contact data used by retrofit for fetching new contacts.
+* **Model:** Represents the contact data used by views.
 * **View:** Jetpack Compose functions that display the UI and handle user interactions.
 * **ViewModel:**  Manages the UI state, interacts with the repository, and provides data to theView.
 
